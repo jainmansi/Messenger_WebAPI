@@ -4,8 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.firstRESTapi.messenger.database.DatabaseClass;
 import org.firstRESTapi.messenger.model.Comment;
+import org.firstRESTapi.messenger.model.ErrorMessage;
 import org.firstRESTapi.messenger.model.Message;
 
 public class CommentService {
