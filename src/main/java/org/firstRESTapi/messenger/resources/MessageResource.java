@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.firstRESTapi.messenger.model.Message;
+import org.firstRESTapi.messenger.model.Profile;
 import org.firstRESTapi.messenger.resources.beans.MessageFilterBean;
 import org.firstRESTapi.messenger.service.MessageService;
 
@@ -47,10 +48,8 @@ public class MessageResource {
 		Message newMessage = messageService.addMessage(message);
 		String newId = String.valueOf(newMessage.getId());
 		URI uri = uriInfo.getAbsolutePathBuilder().path(newId).build();
-		return Response.created(uri)
-						.entity(newMessage)
-						.build();
-		//return messageService.addMessage(message);
+		return Response.created(uri).entity(newMessage).build();
+		// return messageService.addMessage(message);
 	}
 
 	@PUT
@@ -68,10 +67,40 @@ public class MessageResource {
 
 	@GET
 	@Path("/{messageId}")
-	public Message getMessage(@PathParam("messageId") long id) {
-		return messageService.getMessage(id);
+	public Message getMessage(@PathParam("messageId") long id, @Context UriInfo uriInfo) {
+		Message message = messageService.getMessage(id);
+		message.addLink(getUriForSelf(uriInfo, message), "self");
+		message.addLink(getUriForProfile(uriInfo, message), "profile");
+		message.addLink(getUriForComments(uriInfo, message), "comment");
+		return message;
 	}
 	
+	private String getUriForComments(UriInfo uriInfo, Message message) {
+		URI uri = uriInfo.getBaseUriBuilder()
+				.path(MessageResource.class)
+				.path(MessageResource.class, "getCommentResource")
+				.path(CommentResource.class)
+				.resolveTemplate("messageId", message.getId())
+				.build();
+		return uri.toString();
+	}
+
+	private String getUriForProfile(UriInfo uriInfo, Message message) {
+		URI uri = uriInfo.getBaseUriBuilder()
+				.path(ProfileResource.class)
+				.path(message.getAuthor())
+				.build();
+		return uri.toString();
+	}
+
+	private String getUriForSelf(UriInfo uriInfo, Message message) {
+		String uri = uriInfo.getBaseUriBuilder()
+				.path(MessageResource.class)
+				.path(Long.toString(message.getId()))
+				.build().toString();
+		return uri;
+	}
+
 	@Path("/{messageId}/comments")
 	public CommentResource getCommentResource() {
 		return new CommentResource();
